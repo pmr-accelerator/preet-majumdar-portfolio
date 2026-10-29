@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PublicationStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProjectStatus {
+  IDEA
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum CreativeType {
+  SINGING
+  GUITAR
+  TABLA
+}
+
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+enum EmailDeliveryStatus {
+  NOT_CONFIGURED
+  PENDING
+  SENT
+  FAILED
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Profile {
+  id                String   @id @default(cuid())
+  fullName          String   @default("Preet Majumdar")
+  headline          String   @default("Building my foundation in software engineering.")
+  biography         String   @default("I'm a Computer Science and Engineering student developing my skills in programming and software development.") @db.Text
+  college           String   @default("Elitte College of Engineering")
+  degree            String   @default("B.Tech in Computer Science and Engineering")
+  academicStatus    String   @default("Third-year undergraduate student, fifth semester")
+  expectedGraduation String?
+  locationLabel     String?
+  portraitMediaId   String?
+  contactEmail      String?
+  availabilityLabel String?
+  updatedAt         DateTime @updatedAt
+}
+
+model Education {
+  id          String   @id @default(cuid())
+  institution String
+  qualification String
+  field       String?
+  startDate   DateTime?
+  endDate     DateTime?
+  description String?  @db.Text
+  status      PublicationStatus @default(PUBLISHED)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  name        String
+  category    String
+  level       String
+  explanation String?  @db.Text
+  evidenceUrl String?
+  projectId   String?
+  visible     Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([visible, sortOrder])
+}
+
+model Experience {
+  id             String   @id @default(cuid())
+  title          String
+  organization   String
+  startDate      DateTime?
+  endDate        DateTime?
+  current        Boolean  @default(false)
+  responsibilities String[]
+  teachingSubjects String[]
+  description    String?  @db.Text
+  status         PublicationStatus @default(PUBLISHED)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([status, sortOrder])
+}
+
+model Project {
+  id                 String   @id @default(cuid())
+  title              String
+  slug               String   @unique
+  summary            String
+  description        String   @db.Text
+  status             ProjectStatus @default(IDEA)
+  publicationStatus  PublicationStatus @default(DRAFT)
+  startDate          DateTime?
+  completionDate     DateTime?
+  technologies       String[]
+  problemStatement   String?  @db.Text
+  implementation     String?  @db.Text
+  features           String[]
+  challenges         String?  @db.Text
+  lessonsLearned     String?  @db.Text
+  screenshotMediaIds String[]
+  repositoryUrl      String?
+  liveDemoUrl        String?
+  documentationUrl   String?
+  featured           Boolean  @default(false)
+  sortOrder          Int      @default(0)
+  publishedAt        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  @@index([publicationStatus, featured, sortOrder])
+}
+
+model Achievement {
+  id                 String   @id @default(cuid())
+  title              String
+  slug               String   @unique
+  category           String
+  organization       String?
+  issueDate          DateTime?
+  description        String   @db.Text
+  subjectArea        String?
+  certificateMediaId String?
+  verificationUrl    String?
+  supportingMediaIds String[]
+  verificationNote   String?
+  featured           Boolean  @default(false)
+  publicationStatus  PublicationStatus @default(DRAFT)
+  sortOrder          Int      @default(0)
+  publishedAt        DateTime?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  @@index([publicationStatus, category, issueDate])
+}
+
+model GalleryItem {
+  id                String   @id @default(cuid())
+  title             String
+  imageMediaId      String
+  date              DateTime?
+  eventName         String?
+  description       String?  @db.Text
+  category          String
+  altText           String
+  relatedAchievementId String?
+  externalUrl       String?
+  publicationStatus PublicationStatus @default(DRAFT)
+  sortOrder         Int      @default(0)
+  publishedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([publicationStatus, category, sortOrder])
+}
+
+model CreativeEntry {
+  id                String   @id @default(cuid())
+  type              CreativeType
+  title             String
+  slug              String   @unique
+  recordedAt        DateTime?
+  language          String?
+  genre             String?
+  taal              String?
+  accompanyingInstruments String[]
+  mediaAssetId      String?
+  externalMediaUrl  String?
+  coverMediaId      String?
+  description       String?  @db.Text
+  learningStage     String?
+  featured          Boolean  @default(false)
+  publicationStatus PublicationStatus @default(DRAFT)
+  sortOrder         Int      @default(0)
+  publishedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([type, publicationStatus, sortOrder])
+}
+
+model DramaProduction {
+  id                String   @id @default(cuid())
+  title             String
+  role              String
+  organization      String
+  productionDate    DateTime?
+  description       String   @db.Text
+  posterMediaId     String?
+  videoUrl          String?
+  credits           String[]
+  publicationStatus PublicationStatus @default(DRAFT)
+  sortOrder         Int      @default(0)
+  publishedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([publicationStatus, sortOrder])
+}
+
+model SocialLink {
+  id        String   @id @default(cuid())
+  label     String
+  url       String
+  icon      String?
+  visible   Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([visible, sortOrder])
+}
+
+model ResumeAsset {
+  id          String   @id @default(cuid())
+  mediaAssetId String
+  label       String   @default("Current résumé")
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([published])
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  storageKey   String   @unique
+  storageProvider String
+  originalName String
+  contentType  String
+  sizeBytes    Int
+  publicUrl    String?
+  altText      String?
+  width        Int?
+  height       Int?
+  durationSeconds Int?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+  @@index([contentType, createdAt])
+}
+
+model ContactMessage {
+  id                String   @id @default(cuid())
+  fullName          String
+  email             String
+  subject           String
+  message           String   @db.Text
+  category          String?
+  status            ContactStatus @default(NEW)
+  emailDeliveryStatus EmailDeliveryStatus @default(NOT_CONFIGURED)
+  emailDeliveryError String? @db.Text
+  emailAttemptedAt  DateTime?
+  emailSentAt       DateTime?
+  readAt            DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  @@index([status, createdAt])
+  @@index([emailDeliveryStatus, createdAt])
+}
+
+model SiteSettings {
+  id                 String   @id @default(cuid())
+  siteTitle          String   @default("Preet / Digital Field Notes")
+  siteDescription    String   @default("Software development, technical learning, leadership, and creative work.")
+  baseUrl            String?
+  contactDestination String?
+  assistantEnabled   Boolean  @default(true)
+  assistantDisclosure String @default("Automated portfolio assistant; not a live conversation with Preet.")
+  updatedAt          DateTime @updatedAt
+}
