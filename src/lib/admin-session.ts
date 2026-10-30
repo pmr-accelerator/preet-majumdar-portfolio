@@ -38,14 +38,16 @@ export async function setAdminSession(adminId: string) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/admin',
+    path: '/',
     maxAge: MAX_AGE_SECONDS,
   });
 }
 
 export async function clearAdminSession() {
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, '', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/admin', maxAge: 0 });
+  const options = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict' as const, maxAge: 0 };
+  cookieStore.set(COOKIE_NAME, '', { ...options, path: '/' });
+  cookieStore.set(COOKIE_NAME, '', { ...options, path: '/admin' });
 }
 
 export async function getAdmin() {

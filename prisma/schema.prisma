@@ -253,6 +253,7 @@ model MediaAsset {
   contentType  String
   sizeBytes    Int
   publicUrl    String?
+  fileData     Bytes?
   altText      String?
   width        Int?
   height       Int?

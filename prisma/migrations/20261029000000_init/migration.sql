@@ -14,7 +14,7 @@ CREATE UNIQUE INDEX "AdminUser_email_key" ON "AdminUser"("email");
 CREATE TABLE "Profile" (
   "id" TEXT NOT NULL, "fullName" TEXT NOT NULL DEFAULT 'Preet Majumdar',
   "headline" TEXT NOT NULL DEFAULT 'Building my foundation in software engineering.',
-  "biography" TEXT NOT NULL DEFAULT 'I''m a Computer Science and Engineering student developing my skills in programming and software development.',
+  "biography" TEXT NOT NULL DEFAULT 'I\'m a Computer Science and Engineering student developing my skills in programming and software development.',
   "college" TEXT NOT NULL DEFAULT 'Elitte College of Engineering',
   "degree" TEXT NOT NULL DEFAULT 'B.Tech in Computer Science and Engineering',
   "academicStatus" TEXT NOT NULL DEFAULT 'Third-year undergraduate student, fifth semester',

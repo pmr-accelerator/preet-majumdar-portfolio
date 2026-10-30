@@ -1,0 +1,4 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+export const runtime='nodejs';
+export async function GET(_request:Request,{params}:{params:Promise<{id:string}>}){const {id}=await params;const asset=await prisma.mediaAsset.findUnique({where:{id}});if(!asset)return new NextResponse('Not found',{status:404});if(asset.fileData){return new NextResponse(new Uint8Array(asset.fileData),{headers:{'Content-Type':asset.contentType,'Content-Length':String(asset.sizeBytes),'Content-Disposition':`inline; filename="${asset.originalName.replace(/[\r\n"\\]/g,'_')}"`,'Cache-Control':'public, max-age=31536000, immutable','X-Content-Type-Options':'nosniff'}});}if(asset.publicUrl)return NextResponse.redirect(asset.publicUrl);return new NextResponse('File unavailable',{status:404});}
