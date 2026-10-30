@@ -4,45 +4,53 @@
 import { useEffect, useState } from 'react';
 
 export function IntroSplash() {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    // Show the intro on every full page load and refresh.
-    setVisible(true);
+    const exitTimer = window.setTimeout(() => {
+      setExiting(true);
+    }, 3200);
 
-    const done = window.setTimeout(() => {
+    const removeTimer = window.setTimeout(() => {
       setVisible(false);
-    }, 1900);
+    }, 4050);
 
-    return () => window.clearTimeout(done);
+    return () => {
+      window.clearTimeout(exitTimer);
+      window.clearTimeout(removeTimer);
+    };
   }, []);
 
   if (!visible) return null;
 
   return (
     <div
-      className="intro-splash"
+      className={`intro-splash${exiting ? ' intro-splash-exit' : ''}`}
+      role="status"
       aria-label="Welcome to Preet Majumdar's portfolio"
     >
       <div className="intro-orbit" aria-hidden="true" />
 
-      <p className="eyebrow mono">A PERSONAL PORTFOLIO</p>
+      <div className="intro-content">
+        <p className="eyebrow mono">A PERSONAL PORTFOLIO</p>
 
-      <h1>
-        Welcome to
-        <br />
-        <span>Preet Majumdar's</span>
-        <br />
-        Portfolio.
-      </h1>
+        <h1>
+          Welcome to
+          <br />
+          <span>Preet Majumdar's</span>
+          <br />
+          Portfolio.
+        </h1>
 
-      <div className="intro-progress">
-        <i />
+        <div className="intro-progress">
+          <i />
+        </div>
+
+        <p className="intro-caption">
+          TECHNOLOGY · LEADERSHIP · CREATIVE WORK
+        </p>
       </div>
-
-      <p className="intro-caption">
-        TECHNOLOGY · LEADERSHIP · CREATIVE WORK
-      </p>
     </div>
   );
 }
