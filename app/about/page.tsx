@@ -9,28 +9,24 @@ export const metadata = { title: 'About' };
 
 const highlights = [
   {
-    number: '01',
-    title: 'Technical Development',
-    description:
-      'Building a strong foundation in programming, web development, and full-stack engineering.',
+    icon: '🎓',
+    title: 'Education',
+    description: 'B.Tech CSE · Elitte College of Engineering',
   },
   {
-    number: '02',
+    icon: '💻',
+    title: 'Technical Focus',
+    description: 'Programming · Web Development · Full-Stack Engineering',
+  },
+  {
+    icon: '👨‍🏫',
     title: 'Leadership & Mentoring',
-    description:
-      'Serving as Vice President of the College Council and helping juniors learn C programming through the Coding Club.',
+    description: 'College Coding Club · C Programming Mentor',
   },
   {
-    number: '03',
-    title: 'Projects & Innovation',
-    description:
-      'Exploring practical software solutions and developing projects that connect technology with real-world needs.',
-  },
-  {
-    number: '04',
-    title: 'Music & Creativity',
-    description:
-      'Exploring music through singing, guitar, and tabla, while contributing to college cultural productions.',
+    icon: '🎵',
+    title: 'Creative Side',
+    description: 'Singer · Guitarist · Tabla Player',
   },
 ];
 
@@ -40,122 +36,132 @@ export default async function AboutPage() {
   return (
     <ContentPage
       index="01"
-      title={p?.fullName ?? 'About Me'}
-      intro={p?.headline ?? 'Building skills. Creating solutions.'}
+      title={p?.fullName ?? 'A student of software, systems, and creative work.'}
+      intro={p?.headline ?? 'Building my foundation in software engineering.'}
     >
-      <div className="space-y-12">
+      <article className="card">
+        <div className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
 
-        {/* Profile introduction */}
-        <section className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 md:gap-10 items-center">
-
-          {/* Profile photograph */}
-          <div className="relative mx-auto w-full max-w-[280px] aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 shadow-xl">
-            <Image
-              src="/preet-profile.jpg"
-              alt="Preet Majumdar"
-              fill
-              priority
-              sizes="(max-width: 768px) 80vw, 280px"
-              className="object-cover object-center"
-            />
+          {/* LEFT: Profile Photograph */}
+          <div className="flex justify-center md:justify-start">
+            <div className="relative w-full max-w-[280px] aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 shadow-xl">
+              <Image
+                src="/preet-profile.jpg"
+                alt="Preet Majumdar"
+                fill
+                priority
+                sizes="(max-width: 768px) 80vw, 280px"
+                className="object-cover object-center"
+              />
+            </div>
           </div>
 
-          {/* Introduction */}
-          <div className="space-y-5">
-            <p className="text-sm uppercase tracking-[0.2em] muted">
-              Computer Science & Engineering Student
-            </p>
+          {/* RIGHT: Professional Introduction */}
+          <div className="min-w-0 flex flex-col gap-6">
 
-            <h2 className="text-2xl md:text-3xl font-semibold">
-              Building my journey in technology, leadership, and creativity.
-            </h2>
+            <div>
+              <p className="text-sm uppercase tracking-[0.2em] muted mb-3">
+                About Me
+              </p>
 
-            <p className="muted leading-8 whitespace-pre-wrap">
-              {p?.biography ??
-                "I'm a Computer Science and Engineering student at Elitte College of Engineering, focused on developing my skills in programming and software development. I enjoy learning new technologies, building practical projects, and exploring how software can solve real-world problems."}
-            </p>
+              <h2 className="text-2xl md:text-3xl font-semibold mb-3">
+                Building skills. Creating solutions.
+              </h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-              <div className="card">
-                <p className="text-sm muted">Education</p>
-                <p className="font-medium mt-1">
-                  {p?.degree ?? 'B.Tech in Computer Science and Engineering'}
-                </p>
-                <p className="text-sm muted mt-1">
-                  {p?.college ?? 'Elitte College of Engineering'}
-                </p>
-              </div>
+              <p className="text-sm md:text-base muted mb-4">
+                Computer Science & Engineering Student
+              </p>
 
-              <div className="card">
-                <p className="text-sm muted">Academic Status</p>
-                <p className="font-medium mt-1">
-                  {p?.academicStatus ?? 'Third-year undergraduate student'}
-                </p>
-                {p?.expectedGraduation && (
-                  <p className="text-sm muted mt-1">
-                    Expected graduation: {p.expectedGraduation}
+              <p className="leading-8">
+                I&apos;m an aspiring software developer focused on strengthening
+                my programming fundamentals, exploring web technologies, and
+                building practical applications. Alongside my technical
+                journey, I teach C programming through my college Coding Club
+                and actively participate in cultural activities.
+              </p>
+            </div>
+
+            {/* Quick Information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {highlights.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-xl border border-white/10 p-4 bg-white/[0.02]"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <span aria-hidden="true">{item.icon}</span>
+                    <h3 className="font-semibold text-sm">
+                      {item.title}
+                    </h3>
+                  </div>
+
+                  <p className="text-sm muted leading-6">
+                    {item.description}
                   </p>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
 
+            {/* Education Details */}
+            <div className="border-t border-white/10 pt-5">
+              <h3 className="font-semibold mb-2">Academic Background</h3>
+
+              <p className="leading-7">
+                {p?.degree ?? 'B.Tech in Computer Science and Engineering'}
+                {' · '}
+                {p?.college ?? 'Elitte College of Engineering'}
+              </p>
+
+              <p className="muted text-sm mt-1">
+                {p?.academicStatus ?? 'Third-year undergraduate student, fifth semester'}
+                {p?.expectedGraduation
+                  ? ` · Expected graduation: ${p.expectedGraduation}`
+                  : ''}
+              </p>
+            </div>
+
+            {/* Current Focus */}
+            <div>
+              <h3 className="font-semibold mb-2">What I&apos;m Working Towards</h3>
+              <p className="muted leading-7">
+                Developing strong programming fundamentals, improving my
+                web development skills, learning full-stack engineering, and
+                creating useful software applications. I believe in
+                continuous learning and presenting my abilities honestly.
+              </p>
+            </div>
+
+            {/* Creative Interests */}
+            <div>
+              <h3 className="font-semibold mb-2">Beyond Technology</h3>
+              <p className="muted leading-7">
+                Music is an important part of my life. I sing, practise guitar
+                and play tabla, while contributing to college cultural
+                productions. I enjoy bringing creativity and discipline into
+                everything I do.
+              </p>
+            </div>
+
+            {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link href="/projects" className="button">
-                Explore Projects
+              <Link
+                href="/projects"
+                className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium border border-white/20 hover:bg-white/10 transition-colors"
+              >
+                Explore My Projects →
               </Link>
-              <Link href="/contact" className="button">
-                Get in Touch
+
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium bg-white text-black hover:bg-white/85 transition-colors"
+              >
+                Contact Me →
               </Link>
             </div>
+
           </div>
-        </section>
-
-        {/* Highlights */}
-        <section>
-          <div className="mb-6">
-            <p className="text-sm uppercase tracking-[0.2em] muted">
-              What I Do
-            </p>
-            <h2 className="text-2xl font-semibold mt-2">
-              Beyond the Classroom
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {highlights.map((item) => (
-              <div key={item.number} className="card">
-                <p className="text-sm muted mb-3">{item.number}</p>
-                <h3 className="text-lg font-semibold mb-2">
-                  {item.title}
-                </h3>
-                <p className="muted leading-7">
-                  {item.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Current direction */}
-        <section className="card space-y-4">
-          <p className="text-sm uppercase tracking-[0.2em] muted">
-            Current Direction
-          </p>
-
-          <h2 className="text-2xl font-semibold">
-            Learning Today. Building for Tomorrow.
-          </h2>
-
-          <p className="muted leading-8">
-            My current focus is on strengthening programming fundamentals,
-            improving my web development skills, and gaining practical
-            experience through software projects. I aim to grow into a
-            capable software developer through consistent learning,
-            experimentation, and problem-solving.
-          </p>
-        </section>
-
-      </div>
+        </div>
+      </article>
     </ContentPage>
   );
 }

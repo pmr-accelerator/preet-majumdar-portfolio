@@ -1,3 +1,119 @@
-import { prisma } from '@/lib/prisma';import { ContentPage } from '@/components/content-page';
-export const dynamic='force-dynamic';export const metadata={title:'Gallery'};
-export default async function GalleryPage(){const items=await prisma.galleryItem.findMany({where:{publicationStatus:'PUBLISHED'},orderBy:[{date:'desc'},{sortOrder:'asc'}]});const assets=await prisma.mediaAsset.findMany({where:{id:{in:items.map(i=>i.imageMediaId)}}});const urls=new Map(assets.map(a=>[a.id,a.publicUrl]));return <ContentPage index="07 / GALLERY" title="A record of real moments." intro="Photographs from academic events, technical activities, and cultural productions.">{items.length===0?<div className="card"><h2>No gallery items published yet.</h2><p className="muted">Only genuine photographs added by the owner will appear here.</p></div>:<div className="content-grid">{items.map(i=><article className="card" key={i.id}>{urls.get(i.imageMediaId)&&<img src={urls.get(i.imageMediaId)!} alt={i.altText} loading="lazy" style={{width:'100%',height:'auto',borderRadius:6,marginBottom:16}}/>}<p className="eyebrow mono">{i.category}{i.date?` · ${i.date.toLocaleDateString('en-GB')}`:''}</p><h2>{i.title}</h2>{i.description&&<p className="muted">{i.description}</p>}</article>)}</div>}</ContentPage>}
+
+import { prisma } from '@/lib/prisma';
+import { ContentPage } from '@/components/content-page';
+
+export const dynamic = 'force-dynamic';
+
+export const metadata = {
+  title: 'Gallery',
+};
+
+export default async function GalleryPage() {
+  const items = await prisma.galleryItem.findMany({
+    where: { publicationStatus: 'PUBLISHED' },
+    orderBy: [
+      { date: 'desc' },
+      { sortOrder: 'asc' },
+    ],
+  });
+
+  const mediaIds = items.map((item) => item.imageMediaId);
+
+  const assets = mediaIds.length
+    ? await prisma.mediaAsset.findMany({
+        where: { id: { in: mediaIds } },
+      })
+    : [];
+
+  const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
+
+  // Group gallery photographs by event name.
+  const eventGroups = new Map<string, typeof items>();
+
+  for (const item of items) {
+    const eventName = item.eventName?.trim() || 'Other Moments';
+
+    if (!eventGroups.has(eventName)) {
+      eventGroups.set(eventName, []);
+    }
+
+    eventGroups.get(eventName)!.push(item);
+  }
+
+  return (
+    <ContentPage
+      index="07 / GALLERY"
+      title="A record of real moments."
+      intro="Photographs from academic events, technical activities, and cultural productions."
+    >
+      {items.length === 0 ? (
+        <div className="card">
+          <h2>No gallery items published yet.</h2>
+          <p className="muted">
+            Only genuine photographs added by the owner will appear here.
+          </p>
+        </div>
+      ) : (
+        <div>
+          {Array.from(eventGroups.entries()).map(
+            ([eventName, eventItems]) => (
+              <section key={eventName} style={{ marginBottom: 40 }}>
+                <h2>{eventName}</h2>
+
+                <div className="content-grid">
+                  {eventItems.map((item) => {
+                    const asset = assetMap.get(item.imageMediaId);
+
+                    return (
+                      <article className="card" key={item.id}>
+                        {asset && asset.contentType.startsWith('image/') && (
+                          <a
+                            className="media-visual"
+                            href={`/api/media/${asset.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <img
+                              src={`/api/media/${asset.id}`}
+                              alt={item.altText}
+                              loading="lazy"
+                            />
+                          </a>
+                        )}
+
+                        <p className="eyebrow mono">
+                          {item.category}
+                          {item.date
+                            ? ` · ${item.date.toLocaleDateString('en-GB')}`
+                            : ''}
+                        </p>
+
+                        <h3>{item.title}</h3>
+
+                        {item.description && (
+                          <p className="muted">{item.description}</p>
+                        )}
+
+                        {item.externalUrl && (
+                          <p>
+                            <a
+                              href={item.externalUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              View original source ↗
+                            </a>
+                          </p>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            ),
+          )}
+        </div>
+      )}
+    </ContentPage>
+  );
+}

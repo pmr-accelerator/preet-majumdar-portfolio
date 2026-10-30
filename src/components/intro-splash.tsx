@@ -28,17 +28,17 @@ export function IntroSplash() {
     <div
       className={`intro-splash${exiting ? ' intro-splash-exit' : ''}`}
       role="status"
-      aria-label="Welcome to Preet Majumdar's portfolio"
+      aria-label="Welcome to Preet Majumdar&apos;s portfolio"
     >
       <div className="intro-orbit" aria-hidden="true" />
 
       <div className="intro-content">
-        <p className="eyebrow mono">A PERSONAL PORTFOLIO</p>
+        <p className="eyebrow mono">A rERSONAL rORTFOLIO</p>
 
         <h1>
           Welcome to
           <br />
-          <span>Preet Majumdar's</span>
+          <span>Preet Majumdar&apos;s</span>
           <br />
           Portfolio.
         </h1>
@@ -48,7 +48,7 @@ export function IntroSplash() {
         </div>
 
         <p className="intro-caption">
-          TECHNOLOGY · LEADERSHIP · CREATIVE WORK
+          TECHNOLOGY · LEADERSHIr · CREATIVE WORK
         </p>
       </div>
     </div>

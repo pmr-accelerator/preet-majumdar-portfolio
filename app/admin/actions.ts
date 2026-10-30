@@ -393,69 +393,98 @@ export async function deleteSkillAction(fd: FormData) {
   redirect('/admin/skills');
 }
 
+
 const gallerySchema = z.object({
   title: z.string().trim().min(2).max(160),
-  imageMediaId: z.string().min(1),
+  eventName: z.string().trim().max(160).optional(),
   date: z.string().optional(),
-  eventName: z.string().max(160).optional(),
-  description: z.string().max(3000).optional(),
-  category: z.string().trim().min(2).max(80),
-  altText: z.string().trim().min(3).max(300),
+  category: z.string().trim().min(2).max(100),
+  description: z.string().max(5000).optional(),
+  altText: z.string().trim().min(2).max(300),
   externalUrl: z.string().trim().url().optional().or(z.literal('')),
-  publicationStatus: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
+  publicationStatus: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  sortOrder: z.coerce.number().int().min(0).default(0)
 });
 
 export async function saveGalleryAction(fd: FormData) {
   await requireAdmin();
 
-  const parsed = gallerySchema.safeParse(Object.fromEntries(fd.entries()));
+  const parsed = gallerySchema.safeParse(
+    Object.fromEntries(fd.entries())
+  );
+
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? 'Invalid gallery entry');
+    throw new Error(
+      parsed.error.issues[0]?.message ?? 'Invalid gallery entry'
+    );
   }
 
   const d = parsed.data;
+  const id = str(fd, 'id');
+  const imageMediaId = str(fd, 'imageMediaId');
 
-  const media = await prisma.mediaAsset.findUnique({
-    where: { id: d.imageMediaId }
-  });
-
-  if (!media || !media.contentType.startsWith('image/')) {
-    throw new Error('Choose a valid uploaded image asset');
+  if (!imageMediaId) {
+    throw new Error('Please upload a gallery image.');
   }
 
-  const id = str(fd, 'id');
+  const image = await prisma.mediaAsset.findUnique({
+    where: { id: imageMediaId },
+    select: { id: true, contentType: true }
+  });
+
+  if (!image || !image.contentType.startsWith('image/')) {
+    throw new Error('Please select a valid uploaded image.');
+  }
 
   const data = {
     title: d.title,
-    imageMediaId: d.imageMediaId,
-    date: d.date ? new Date(d.date) : null,
+    imageMediaId,
     eventName: d.eventName || null,
-    description: d.description || null,
+    date: d.date ? new Date(d.date) : null,
     category: d.category,
+    description: d.description || null,
     altText: d.altText,
     externalUrl: d.externalUrl || null,
     publicationStatus: d.publicationStatus,
-    publishedAt: d.publicationStatus === 'PUBLISHED' ? new Date() : null
+    sortOrder: d.sortOrder,
+    publishedAt:
+      d.publicationStatus === 'PUBLISHED' ? new Date() : null
   };
 
   if (id) {
-    await prisma.galleryItem.update({ where: { id }, data });
+    await prisma.galleryItem.update({
+      where: { id },
+      data
+    });
   } else {
-    await prisma.galleryItem.create({ data });
+    await prisma.galleryItem.create({
+      data
+    });
   }
 
   revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
   redirect('/admin/gallery');
 }
 
 export async function deleteGalleryAction(fd: FormData) {
   await requireAdmin();
 
-  await prisma.galleryItem.delete({ where: { id: str(fd, 'id') } });
+  const id = str(fd, 'id');
+
+  if (!id) {
+    throw new Error('Gallery item ID is missing.');
+  }
+
+  await prisma.galleryItem.delete({
+    where: { id }
+  });
 
   revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
   redirect('/admin/gallery');
 }
+
 
 export async function setCurrentResumeAction(fd: FormData) {
   await requireAdmin();

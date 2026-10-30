@@ -2,25 +2,22 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/admin-session';
+import { DirectMediaUpload } from '@/components/direct-media-upload';
+import { ConfirmSubmitButton } from '@/components/confirm-submit-button';
 import {
   saveGalleryAction,
-  deleteGalleryAction,
+  deleteGalleryAction
 } from '../actions';
-import { ConfirmSubmitButton } from '@/components/confirm-submit-button';
-import { DirectMediaUpload } from '@/components/direct-media-upload';
 
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Manage gallery',
-  robots: {
-    index: false,
-    follow: false,
-  },
+  title: 'Manage Gallery',
+  robots: { index: false, follow: false }
 };
 
-export default async function GalleryAdmin({
-  searchParams,
+export default async function AdminGalleryPage({
+  searchParams
 }: {
   searchParams: Promise<{ edit?: string }>;
 }) {
@@ -30,97 +27,88 @@ export default async function GalleryAdmin({
 
   const [items, editing] = await Promise.all([
     prisma.galleryItem.findMany({
-      orderBy: { updatedAt: 'desc' },
+      orderBy: [
+        { date: 'desc' },
+        { sortOrder: 'asc' },
+        { updatedAt: 'desc' }
+      ]
     }),
     params.edit
       ? prisma.galleryItem.findUnique({
-          where: { id: params.edit },
+          where: { id: params.edit }
         })
-      : Promise.resolve(null),
+      : Promise.resolve(null)
   ]);
+
+  const imageIds = items.map((item) => item.imageMediaId);
+
+  const assets = imageIds.length
+    ? await prisma.mediaAsset.findMany({
+        where: { id: { in: imageIds } },
+        select: {
+          id: true,
+          contentType: true
+        }
+      })
+    : [];
+
+  const assetMap = new Map(
+    assets.map((asset) => [asset.id, asset])
+  );
 
   const g = editing;
 
   return (
     <section
       className="wrap"
-      style={{
-        paddingBlock: 40,
-        minHeight: '75vh',
-      }}
+      style={{ paddingBlock: 40, minHeight: '75vh' }}
     >
-      <p className="eyebrow mono">
-        PRIVATE CMS / PHOTO GALLERY
-      </p>
+      <p className="eyebrow mono">PRIVATE CMS / GALLERY</p>
 
       <h1>Gallery</h1>
 
       <p className="muted">
-        Upload or replace this gallery image directly in this form.
+        Upload photographs and organize them under separate event names.
+        Items marked Published appear on the public Gallery page.
       </p>
 
       <Link className="button" href="/admin">
         ← Dashboard
       </Link>
 
-      <Link
-        className="button"
-        href="/admin/media"
-        style={{ marginLeft: 8 }}
-      >
-        Open media library
-      </Link>
+      <div className="card" style={{ marginTop: 20 }}>
+        <h2>{g ? 'Edit gallery photograph' : 'Add gallery photograph'}</h2>
 
-      <div
-        className="card"
-        style={{ marginTop: 20 }}
-      >
-        <h2>
-          {g ? 'Edit gallery item' : 'Add gallery item'}
-        </h2>
-
-        <form
-          action={saveGalleryAction}
-          className="admin-form"
-        >
+        <form action={saveGalleryAction} className="admin-form">
           {g && (
-            <input
-              type="hidden"
-              name="id"
-              value={g.id}
-            />
+            <input type="hidden" name="id" value={g.id} />
           )}
 
           <label>
-            Title
+            Photograph title
             <input
               name="title"
               required
-              defaultValue={g?.title}
-            />
-          </label>
-
-          <DirectMediaUpload
-            name="imageMediaId"
-            accept="image/jpeg,image/png,image/webp"
-            label="Gallery image (required)"
-            existingId={g?.imageMediaId ?? null}
-          />
-
-          <label>
-            Date
-            <input
-              type="date"
-              name="date"
-              defaultValue={g?.date?.toISOString().slice(0, 10)}
+              defaultValue={g?.title ?? ''}
+              placeholder="e.g. Teachers' Day Celebration"
             />
           </label>
 
           <label>
-            Event or organization
+            Event / Album name
             <input
               name="eventName"
               defaultValue={g?.eventName ?? ''}
+              placeholder="e.g. Teachers' Day 2026"
+            />
+          </label>
+
+          <label>
+            Event date
+            <input
+              type="date"
+              name="date"
+              defaultValue={g?.date?.toISOString().slice(0, 10) ?? ''}
             />
           </label>
 
@@ -129,17 +117,8 @@ export default async function GalleryAdmin({
             <input
               name="category"
               required
-              defaultValue={g?.category ?? 'Academic event'}
-            />
-          </label>
-
-          <label>
-            Alternative text
-            <input
-              name="altText"
-              required
-              minLength={3}
-              defaultValue={g?.altText}
+              defaultValue={g?.category ?? 'College Event'}
+              placeholder="e.g. Academic Event"
             />
           </label>
 
@@ -147,17 +126,46 @@ export default async function GalleryAdmin({
             Description
             <textarea
               name="description"
-              rows={3}
+              rows={4}
               defaultValue={g?.description ?? ''}
+              placeholder="Write a short description..."
+            />
+          </label>
+
+          <DirectMediaUpload
+            name="imageMediaId"
+            accept="image/jpeg,image/png,image/webp"
+            label="Gallery photograph (required)"
+            existingId={g?.imageMediaId ?? null}
+          />
+
+          <label>
+            Image alt text
+            <input
+              name="altText"
+              required
+              defaultValue={g?.altText ?? ''}
+              placeholder="Describe what is visible in the photograph"
             />
           </label>
 
           <label>
-            External source URL (optional)
+            Original source URL (optional)
             <input
               type="url"
               name="externalUrl"
               defaultValue={g?.externalUrl ?? ''}
+              placeholder="https://..."
+            />
+          </label>
+
+          <label>
+            Display order
+            <input
+              type="number"
+              name="sortOrder"
+              min="0"
+              defaultValue={g?.sortOrder ?? 0}
             />
           </label>
 
@@ -173,18 +181,12 @@ export default async function GalleryAdmin({
             </select>
           </label>
 
-          <button
-            className="button button-primary"
-            type="submit"
-          >
-            {g ? 'Save item' : 'Create item'}
+          <button className="button button-primary" type="submit">
+            {g ? 'Save changes' : 'Add photograph'}
           </button>
 
           {g && (
-            <Link
-              className="button"
-              href="/admin/gallery"
-            >
+            <Link href="/admin/gallery" className="button">
               Cancel edit
             </Link>
           )}
@@ -192,51 +194,69 @@ export default async function GalleryAdmin({
       </div>
 
       <h2 style={{ marginTop: 32 }}>
-        Gallery items ({items.length})
+        Existing photographs ({items.length})
       </h2>
 
       <div className="admin-list">
-        {items.map((i) => (
-          <article
-            className="card"
-            key={i.id}
-          >
-            <div className="admin-row">
-              <div>
-                <p className="eyebrow mono">
-                  {i.publicationStatus} · {i.category}
-                </p>
+        {items.map((item) => {
+          const asset = assetMap.get(item.imageMediaId);
 
-                <h3>{i.title}</h3>
+          return (
+            <article className="card" key={item.id}>
+              <div className="admin-row">
+                <div>
+                  {asset?.contentType.startsWith('image/') && (
+                    <img
+                      src={`/api/media/${asset.id}`}
+                      alt={item.altText}
+                      style={{
+                        width: 160,
+                        height: 110,
+                        objectFit: 'cover',
+                        borderRadius: 8,
+                        marginBottom: 12
+                      }}
+                    />
+                  )}
 
-                <p className="muted">
-                  {i.altText}
-                </p>
+                  <p className="eyebrow mono">
+                    {item.publicationStatus} · {item.category}
+                  </p>
+
+                  <h3>{item.title}</h3>
+
+                  <p className="muted">
+                    Album: {item.eventName || 'Other Moments'}
+                    {item.date
+                      ? ` · ${item.date.toLocaleDateString('en-GB')}`
+                      : ''}
+                  </p>
+                </div>
+
+                <div className="admin-actions">
+                  <Link
+                    className="button"
+                    href={`/admin/gallery?edit=${item.id}`}
+                  >
+                    Edit
+                  </Link>
+
+                  <form action={deleteGalleryAction}>
+                    <input
+                      type="hidden"
+                      name="id"
+                      value={item.id}
+                    />
+
+                    <ConfirmSubmitButton confirmation="Delete this photograph permanently?">
+                      Delete
+                    </ConfirmSubmitButton>
+                  </form>
+                </div>
               </div>
-
-              <div className="admin-actions">
-                <Link
-                  className="button"
-                  href={`/admin/gallery?edit=${i.id}`}
-                >
-                  Edit
-                </Link>
-
-                <form action={deleteGalleryAction}>
-                  <input
-                    type="hidden"
-                    name="id"
-                    value={i.id}
-                  />
-
-                  <ConfirmSubmitButton confirmation="Delete this gallery entry permanently?">
-                    Delete
-                  </ConfirmSubmitButton>
-                </form>
-              </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </section>
   );
