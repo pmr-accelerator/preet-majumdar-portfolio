@@ -24,8 +24,9 @@ const personJsonLd = {
     'Programming',
   ],
   sameAs: [
-    'https://github.com/pmr-accelerator',
-  ],
+  'https://github.com/pmr-accelerator',
+  'https://www.linkedin.com/in/preet-majumdar-20834b321/',
+],
 };
 
 export const metadata: Metadata = {
