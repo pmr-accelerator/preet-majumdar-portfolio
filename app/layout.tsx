@@ -6,6 +6,28 @@ import { SiteFooter } from '@/components/site-footer';
 import { PortfolioAssistant } from '@/components/portfolio-assistant';
 import { IntroSplash } from '@/components/intro-splash';
 
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Preet Majumdar',
+  url: 'https://preet-majumdar-portfolio.onrender.com',
+  jobTitle: 'Computer Science and Engineering Student',
+  description:
+    'Computer Science and Engineering student interested in software development, web development, technology, leadership, and creative work.',
+  knowsAbout: [
+    'Computer Science',
+    'Software Development',
+    'Web Development',
+    'JavaScript',
+    'React',
+    'Next.js',
+    'Programming',
+  ],
+  sameAs: [
+    'https://github.com/pmr-accelerator',
+  ],
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     'https://preet-majumdar-portfolio.onrender.com'
@@ -48,6 +70,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(personJsonLd).replace(/</g, '\\u003c'),
+          }}
+        />
+
         <IntroSplash />
         <SiteHeader />
         <main>{children}</main>
