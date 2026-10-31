@@ -1,4 +1,3 @@
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { ContentPage } from '@/components/content-page';
@@ -21,12 +20,18 @@ const highlights = [
   {
     icon: '👨‍🏫',
     title: 'Leadership & Mentoring',
-    description: 'College Coding Club · C Programming Mentor',
+    description: 'College Coding Club · President & C Programming Mentor',
+  },
+  {
+    icon: '🏛️',
+    title: 'Student Leadership',
+    description: 'College Council · Vice President',
   },
   {
     icon: '🎵',
     title: 'Creative Side',
-    description: 'Singer · Guitarist · Tabla Player',
+    description:
+      'Singer · Guitarist · Tabla Player · Cultural Drama Productions',
   },
 ];
 
@@ -40,35 +45,31 @@ export default async function AboutPage() {
       intro={p?.headline ?? 'Building my foundation in software engineering.'}
     >
       <article className="card">
-        <div className="grid grid-cols-1 md:grid-cols-[280px_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
-
-          {/* LEFT: Profile Photograph */}
+        <div className="grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)] gap-8 lg:gap-12 items-start">
           <div className="flex justify-center md:justify-start">
-            <div className="relative w-full max-w-[280px] aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 shadow-xl">
+            <div className="relative w-full max-w-[260px] aspect-[4/5] overflow-hidden rounded-2xl border border-white/10 shadow-xl">
               <Image
                 src="/preet-profile.jpg"
                 alt="Preet Majumdar"
                 fill
                 priority
-                sizes="(max-width: 768px) 80vw, 280px"
+                sizes="(max-width: 768px) 80vw, 260px"
                 className="object-cover object-center"
               />
             </div>
           </div>
 
-          {/* RIGHT: Professional Introduction */}
-          <div className="min-w-0 flex flex-col gap-6">
-
-            <div>
-              <p className="text-sm uppercase tracking-[0.2em] muted mb-3">
+          <div className="min-w-0 flex flex-col gap-8">
+            <section>
+              <p className="text-xs uppercase tracking-[0.22em] muted mb-3">
                 About Me
               </p>
 
-              <h2 className="text-2xl md:text-3xl font-semibold mb-3">
+              <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-3">
                 Building skills. Creating solutions.
               </h2>
 
-              <p className="text-sm md:text-base muted mb-4">
+              <p className="text-sm md:text-base muted mb-5">
                 Computer Science & Engineering Student
               </p>
 
@@ -76,35 +77,38 @@ export default async function AboutPage() {
                 I&apos;m an aspiring software developer focused on strengthening
                 my programming fundamentals, exploring web technologies, and
                 building practical applications. Alongside my technical
-                journey, I teach C programming through my college Coding Club
-                and actively participate in cultural activities.
+                journey, I teach C programming through my college Coding Club,
+                serve as Vice President of the College Council, and actively
+                participate in cultural activities.
               </p>
-            </div>
+            </section>
 
-            {/* Quick Information */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {highlights.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-xl border border-white/10 p-4 bg-white/[0.02]"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span aria-hidden="true">{item.icon}</span>
-                    <h3 className="font-semibold text-sm">
-                      {item.title}
-                    </h3>
+            <section>
+              <h3 className="font-semibold text-lg mb-4">At a Glance</h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {highlights.map((item) => (
+                  <div
+                    key={item.title}
+                    className="rounded-xl border border-white/10 p-4 bg-white/[0.02]"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <span aria-hidden="true">{item.icon}</span>
+                      <h4 className="font-semibold text-sm">{item.title}</h4>
+                    </div>
+
+                    <p className="text-sm muted leading-6">
+                      {item.description}
+                    </p>
                   </div>
+                ))}
+              </div>
+            </section>
 
-                  <p className="text-sm muted leading-6">
-                    {item.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Education Details */}
-            <div className="border-t border-white/10 pt-5">
-              <h3 className="font-semibold mb-2">Academic Background</h3>
+            <section className="border-t border-white/10 pt-6">
+              <h3 className="font-semibold text-lg mb-3">
+                Academic Background
+              </h3>
 
               <p className="leading-7">
                 {p?.degree ?? 'B.Tech in Computer Science and Engineering'}
@@ -112,37 +116,39 @@ export default async function AboutPage() {
                 {p?.college ?? 'Elitte College of Engineering'}
               </p>
 
-              <p className="muted text-sm mt-1">
-                {p?.academicStatus ?? 'Third-year undergraduate student, fifth semester'}
+              <p className="muted text-sm mt-2">
+                {p?.academicStatus ??
+                  'Third-year undergraduate student, fifth semester'}
                 {p?.expectedGraduation
                   ? ` · Expected graduation: ${p.expectedGraduation}`
                   : ''}
               </p>
-            </div>
+            </section>
 
-            {/* Current Focus */}
-            <div>
-              <h3 className="font-semibold mb-2">What I&apos;m Working Towards</h3>
+            <section>
+              <h3 className="font-semibold text-lg mb-3">
+                Current Technical Focus
+              </h3>
               <p className="muted leading-7">
                 Developing strong programming fundamentals, improving my
                 web development skills, learning full-stack engineering, and
                 creating useful software applications. I believe in
                 continuous learning and presenting my abilities honestly.
               </p>
-            </div>
+            </section>
 
-            {/* Creative Interests */}
-            <div>
-              <h3 className="font-semibold mb-2">Beyond Technology</h3>
+            <section>
+              <h3 className="font-semibold text-lg mb-3">
+                Beyond Technology
+              </h3>
               <p className="muted leading-7">
                 Music is an important part of my life. I sing, practise guitar
                 and play tabla, while contributing to college cultural
                 productions. I enjoy bringing creativity and discipline into
                 everything I do.
               </p>
-            </div>
+            </section>
 
-            {/* Action Buttons */}
             <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 href="/projects"
@@ -153,12 +159,11 @@ export default async function AboutPage() {
 
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium bg-white text-black hover:bg-white/85 transition-colors"
+                className="!inline-flex !items-center !justify-center !rounded-full !bg-slate-950 !text-cyan-300 !border !border-cyan-400 px-6 py-3 text-sm font-semibold hover:!bg-slate-800 hover:!text-white transition-colors"
               >
                 Contact Me →
               </Link>
             </div>
-
           </div>
         </div>
       </article>
