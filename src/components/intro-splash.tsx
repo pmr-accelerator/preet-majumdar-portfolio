@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,11 +9,11 @@ export function IntroSplash() {
   useEffect(() => {
     const exitTimer = window.setTimeout(() => {
       setExiting(true);
-    }, 3200);
+    }, 1900);
 
     const removeTimer = window.setTimeout(() => {
       setVisible(false);
-    }, 4050);
+    }, 2800);
 
     return () => {
       window.clearTimeout(exitTimer);
@@ -28,19 +27,19 @@ export function IntroSplash() {
     <div
       className={`intro-splash${exiting ? ' intro-splash-exit' : ''}`}
       role="status"
-      aria-label="Welcome to Preet Majumdar&apos;s portfolio"
+      aria-label="Welcome to Preet Majumdar's portfolio"
     >
       <div className="intro-orbit" aria-hidden="true" />
 
       <div className="intro-content">
-        <p className="eyebrow mono">A rERSONAL rORTFOLIO</p>
+        <p className="eyebrow mono">A PERSONAL PORTFOLIO</p>
 
         <h1>
           Welcome to
           <br />
           <span>Preet Majumdar&apos;s</span>
           <br />
-          Portfolio.
+          Portfolio
         </h1>
 
         <div className="intro-progress">
@@ -48,7 +47,7 @@ export function IntroSplash() {
         </div>
 
         <p className="intro-caption">
-          TECHNOLOGY · LEADERSHIr · CREATIVE WORK
+          TECHNOLOGY · LEADERSHIP · CREATIVE WORK
         </p>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import { prisma } from '@/lib/prisma';
 import { ContentPage } from '@/components/content-page';
 
@@ -10,24 +9,50 @@ export const metadata = {
 
 export default async function GalleryPage() {
   const items = await prisma.galleryItem.findMany({
-    where: { publicationStatus: 'PUBLISHED' },
+    where: {
+      publicationStatus: 'PUBLISHED',
+    },
     orderBy: [
       { date: 'desc' },
       { sortOrder: 'asc' },
     ],
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      category: true,
+      date: true,
+      eventName: true,
+      imageMediaId: true,
+      altText: true,
+      externalUrl: true,
+    },
   });
 
-  const mediaIds = items.map((item) => item.imageMediaId);
+  // Fetch only the media metadata needed by the gallery.
+  const mediaIds = [
+    ...new Set(items.map((item) => item.imageMediaId)),
+  ];
 
   const assets = mediaIds.length
     ? await prisma.mediaAsset.findMany({
-        where: { id: { in: mediaIds } },
+        where: {
+          id: {
+            in: mediaIds,
+          },
+        },
+        select: {
+          id: true,
+          contentType: true,
+        },
       })
     : [];
 
-  const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
+  const assetMap = new Map(
+    assets.map((asset) => [asset.id, asset])
+  );
 
-  // Group gallery photographs by event name.
+  // Group photographs by event name.
   const eventGroups = new Map<string, typeof items>();
 
   for (const item of items) {
@@ -54,10 +79,13 @@ export default async function GalleryPage() {
           </p>
         </div>
       ) : (
-        <div>
+        <div className="gallery-events">
           {Array.from(eventGroups.entries()).map(
             ([eventName, eventItems]) => (
-              <section key={eventName} style={{ marginBottom: 40 }}>
+              <section
+                key={eventName}
+                className="gallery-event"
+              >
                 <h2>{eventName}</h2>
 
                 <div className="content-grid">
@@ -66,17 +94,19 @@ export default async function GalleryPage() {
 
                     return (
                       <article className="card" key={item.id}>
-                        {asset && asset.contentType.startsWith('image/') && (
+                        {asset?.contentType.startsWith('image/') && (
                           <a
-                            className="media-visual"
+                            className="media-visual gallery-media-visual"
                             href={`/api/media/${asset.id}`}
                             target="_blank"
                             rel="noreferrer"
+                            aria-label={`Open photograph: ${item.title}`}
                           >
                             <img
                               src={`/api/media/${asset.id}`}
-                              alt={item.altText}
+                              alt={item.altText || item.title}
                               loading="lazy"
+                              decoding="async"
                             />
                           </a>
                         )}
@@ -91,7 +121,9 @@ export default async function GalleryPage() {
                         <h3>{item.title}</h3>
 
                         {item.description && (
-                          <p className="muted">{item.description}</p>
+                          <p className="muted">
+                            {item.description}
+                          </p>
                         )}
 
                         {item.externalUrl && (
@@ -110,7 +142,7 @@ export default async function GalleryPage() {
                   })}
                 </div>
               </section>
-            ),
+            )
           )}
         </div>
       )}
