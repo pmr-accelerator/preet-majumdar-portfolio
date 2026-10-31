@@ -1,4 +1,4 @@
-
+import Image from 'next/image';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ContentPage } from '@/components/content-page';
@@ -21,9 +21,14 @@ export default async function AchievementsPage() {
     ],
   });
 
-  const mediaIds = items
-    .map((item) => item.certificateMediaId)
-    .filter((id): id is string => Boolean(id));
+  const mediaIds = [
+    ...new Set(
+      items.flatMap((item) => [
+        ...(item.certificateMediaId ? [item.certificateMediaId] : []),
+        ...(item.supportingMediaIds ?? []),
+      ])
+    ),
+  ];
 
   const assets = mediaIds.length
     ? await prisma.mediaAsset.findMany({
@@ -48,71 +53,110 @@ export default async function AchievementsPage() {
           </p>
         </div>
       ) : (
-        <div className="content-grid">
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
+            gap: '16px',
+          }}
+        >
           {items.map((a) => {
             const certificate = a.certificateMediaId
               ? assetMap.get(a.certificateMediaId)
               : null;
 
-            const certificateUrl = certificate
-              ? `/api/media/${certificate.id}`
-              : null;
+            const certificateIsImage =
+              certificate?.contentType.startsWith('image/');
+
+            const certificateIsPdf =
+              certificate?.contentType === 'application/pdf';
 
             return (
-              <article className="card" key={a.id}>
-                {certificate && certificateUrl && (
-                  <>
-                    {certificate.contentType.startsWith('image/') ? (
-                      <Link
-                        href={`/achievements/${a.slug}`}
-                        className="media-visual"
-                      >
-                        <img
-                          src={certificateUrl}
+              <article
+                className="card"
+                key={a.id}
+                style={{ padding: '16px' }}
+              >
+                <Link
+                  href={`/achievements/${a.slug}`}
+                  className="group block"
+                  aria-label={`View details of ${a.title}`}
+                >
+                  <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-black/10">
+                    <div
+                      className="flex items-center justify-center overflow-hidden p-2"
+                      style={{ aspectRatio: '16 / 9', maxHeight: '165px' }}
+                    >
+                      {certificate && certificateIsImage ? (
+                        <Image
+                          src={`/api/media/${certificate.id}`}
                           alt={
-                            certificate.altText || `${a.title} certificate`
+                            certificate.altText ||
+                            `${a.title} certificate`
                           }
-                          loading="lazy"
+                          width={900}
+                          height={675}
+                          unoptimized
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
                         />
-                      </Link>
-                    ) : certificate.contentType === 'application/pdf' ? (
-                      <a
-                        className="media-document"
-                        href={certificateUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <span className="media-icon">PDF</span>
-                        <span>
-                          <strong>Certificate document</strong>
-                          <small>{certificate.originalName}</small>
-                        </span>
-                        <b>↗</b>
-                      </a>
-                    ) : null}
-                  </>
-                )}
+                      ) : certificate && certificateIsPdf ? (
+                        <div className="flex flex-col items-center gap-2 text-center">
+                          <span className="text-4xl">📜</span>
+                          <span className="text-xs font-semibold">
+                            Certificate PDF
+                          </span>
+                          <span className="muted text-xs">
+                            Open to view
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-center">
+                          <span className="text-4xl">🏆</span>
+                          <span className="text-xs font-semibold">
+                            Achievement
+                          </span>
+                          <span className="muted text-xs">
+                            View details
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                <p className="eyebrow mono">
-                  {a.category.toUpperCase()}
-                  {a.issueDate
-                    ? ` / ${a.issueDate.toLocaleDateString('en-GB', {
-                        month: 'short',
-                        year: 'numeric',
-                      })}`
-                    : ''}
-                </p>
+                  <p className="eyebrow mono text-xs">
+                    {a.category.toUpperCase()}
+                    {a.issueDate
+                      ? ` / ${a.issueDate.toLocaleDateString('en-GB', {
+                          month: 'short',
+                          year: 'numeric',
+                        })}`
+                      : ''}
+                  </p>
 
-                <h2>
-                  <Link href={`/achievements/${a.slug}`}>{a.title}</Link>
-                </h2>
+                  <h2 className="mt-1 text-base group-hover:text-cyan-300 transition-colors">
+                    {a.title}
+                  </h2>
 
-                <p className="muted">{a.organization}</p>
+                  {a.organization && (
+                    <p className="muted mt-1 text-sm">{a.organization}</p>
+                  )}
 
-                <p style={{ lineHeight: 1.8 }}>{a.description}</p>
+                  <p
+                    className="mt-2 text-sm"
+                    style={{
+                      lineHeight: 1.6,
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {a.description}
+                  </p>
 
-                <Link href={`/achievements/${a.slug}`}>
-                  View details →
+                  <span className="inline-block mt-3 text-xs font-medium">
+                    View certificate & details →
+                  </span>
                 </Link>
               </article>
             );
