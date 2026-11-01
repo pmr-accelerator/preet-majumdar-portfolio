@@ -12,31 +12,56 @@ export const metadata = {
 };
 
 export default async function AchievementsPage() {
+  // Fetch only the achievement fields required for the listing.
   const items = await prisma.achievement.findMany({
-    where: { publicationStatus: 'PUBLISHED' },
+    where: {
+      publicationStatus: 'PUBLISHED',
+    },
     orderBy: [
       { featured: 'desc' },
       { issueDate: 'desc' },
       { sortOrder: 'asc' },
     ],
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      category: true,
+      issueDate: true,
+      organization: true,
+      description: true,
+      certificateMediaId: true,
+    },
   });
 
+  // Only certificate media is required for the listing cards.
   const mediaIds = [
     ...new Set(
-      items.flatMap((item) => [
-        ...(item.certificateMediaId ? [item.certificateMediaId] : []),
-        ...(item.supportingMediaIds ?? []),
-      ])
+      items
+        .map((item) => item.certificateMediaId)
+        .filter((id): id is string => Boolean(id))
     ),
   ];
 
+  // Fetch media metadata only, not the actual binary file data.
   const assets = mediaIds.length
     ? await prisma.mediaAsset.findMany({
-        where: { id: { in: mediaIds } },
+        where: {
+          id: {
+            in: mediaIds,
+          },
+        },
+        select: {
+          id: true,
+          contentType: true,
+          altText: true,
+        },
       })
     : [];
 
-  const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
+  const assetMap = new Map(
+    assets.map((asset) => [asset.id, asset])
+  );
 
   return (
     <ContentPage
@@ -56,7 +81,8 @@ export default async function AchievementsPage() {
         <div
           className="grid"
           style={{
-            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
+            gridTemplateColumns:
+              'repeat(auto-fill, minmax(min(100%, 250px), 1fr))',
             gap: '16px',
           }}
         >
@@ -85,7 +111,10 @@ export default async function AchievementsPage() {
                   <div className="mb-3 overflow-hidden rounded-lg border border-white/10 bg-black/10">
                     <div
                       className="flex items-center justify-center overflow-hidden p-2"
-                      style={{ aspectRatio: '16 / 9', maxHeight: '165px' }}
+                      style={{
+                        aspectRatio: '16 / 9',
+                        maxHeight: '165px',
+                      }}
                     >
                       {certificate && certificateIsImage ? (
                         <Image
@@ -138,7 +167,9 @@ export default async function AchievementsPage() {
                   </h2>
 
                   {a.organization && (
-                    <p className="muted mt-1 text-sm">{a.organization}</p>
+                    <p className="muted mt-1 text-sm">
+                      {a.organization}
+                    </p>
                   )}
 
                   <p

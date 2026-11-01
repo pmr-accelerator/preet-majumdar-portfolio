@@ -1,5 +1,5 @@
-
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ContentPage } from '@/components/content-page';
 import { MediaDisplay } from '@/components/media-display';
@@ -13,12 +13,12 @@ export default async function AchievementDetail({
 }) {
   const { slug } = await params;
 
-  const a = await prisma.achievement.findFirst({
-    where: {
-      slug,
-      publicationStatus: 'PUBLISHED',
-    },
-  });
+  const a = await prisma.achievement.findUnique({
+  where: {
+    slug,
+    publicationStatus: 'PUBLISHED',
+  },
+});
 
   if (!a) notFound();
 
@@ -28,10 +28,17 @@ export default async function AchievementDetail({
   ];
 
   const assets = mediaIds.length
-    ? await prisma.mediaAsset.findMany({
-        where: { id: { in: mediaIds } },
-      })
-    : [];
+  ? await prisma.mediaAsset.findMany({
+      where: { id: { in: mediaIds } },
+      select: {
+        id: true,
+        contentType: true,
+        originalName: true,
+        altText: true,
+        publicUrl: true,
+      },
+    })
+  : [];
 
   const assetMap = new Map(assets.map((asset) => [asset.id, asset]));
 
@@ -68,7 +75,10 @@ export default async function AchievementDetail({
 
         {certificate && (
           <section style={{ marginTop: 20 }}>
-            <h2>Certificate / Proof</h2>
+            <h2 className="font-semibold text-lg mb-4">
+              Certificate / Proof
+            </h2>
+
             <MediaDisplay
               asset={displayAsset(certificate)}
               title={`${a.title} certificate`}
@@ -76,9 +86,41 @@ export default async function AchievementDetail({
           </section>
         )}
 
+        <section className="border-t border-white/10 pt-6 mt-6">
+          <h2 className="font-semibold text-lg mb-3">
+            Achievement Details
+          </h2>
+
+          <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.9 }}>
+            {a.description}
+          </p>
+
+          {a.subjectArea && (
+            <p className="muted mt-3">Subject: {a.subjectArea}</p>
+          )}
+
+          {a.verificationUrl && (
+            <p className="mt-3">
+              <a
+                href={a.verificationUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View external verification ↗
+              </a>
+            </p>
+          )}
+
+          {a.verificationNote && (
+            <p className="muted mt-3">{a.verificationNote}</p>
+          )}
+        </section>
+
         {supportingAssets.length > 0 && (
-          <section style={{ marginTop: 28 }}>
-            <h2>Supporting documents and photographs</h2>
+          <section className="border-t border-white/10 pt-6 mt-6">
+            <h2 className="font-semibold text-lg mb-4">
+              Additional Photographs & Supporting Documents
+            </h2>
 
             <div className="content-grid">
               {supportingAssets.map((asset) => (
@@ -93,30 +135,13 @@ export default async function AchievementDetail({
           </section>
         )}
 
-        <div style={{ marginTop: 24 }}>
-          <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.9 }}>
-            {a.description}
-          </p>
-
-          {a.subjectArea && (
-            <p className="muted">Subject: {a.subjectArea}</p>
-          )}
-
-          {a.verificationUrl && (
-            <p>
-              <a
-                href={a.verificationUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                View external verification ↗
-              </a>
-            </p>
-          )}
-
-          {a.verificationNote && (
-            <p className="muted">{a.verificationNote}</p>
-          )}
+        <div className="border-t border-white/10 pt-5 mt-6">
+          <Link
+            href="/achievements"
+            className="text-sm font-medium hover:text-cyan-300 transition-colors"
+          >
+            ← Back to achievements
+          </Link>
         </div>
       </article>
     </ContentPage>

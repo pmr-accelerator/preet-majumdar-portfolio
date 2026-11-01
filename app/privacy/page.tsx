@@ -1,3 +1,53 @@
 import { ContentPage } from '@/components/content-page';
-export const metadata={title:'Privacy'};
-export default function PrivacyPage(){return <ContentPage index="P" title="Privacy, plainly stated." intro="This portfolio collects only the information needed to operate its contact and content features."><div className="card"><h2>Contact messages</h2><p className="muted" style={{lineHeight:1.8}}>When you submit the contact form, your name, email address, subject, inquiry category, and message are stored in a private database for the portfolio owner to review. If a transactional email provider is configured, the system attempts to notify the owner. Database storage and email delivery are separate; the form reports that a message was saved, not that an email was necessarily delivered.</p><h2>Retention</h2><p className="muted" style={{lineHeight:1.8}}>Messages are retained until the owner archives or deletes them under the site&apos;s operational policy. A specific retention period should be set by the owner before public launch.</p><h2>Cookies and sessions</h2><p className="muted" style={{lineHeight:1.8}}>The private administrator area uses an HTTP-only session cookie. The portfolio assistant sends the visitor&apos;s submitted question to the site&apos;s own server and answers using published portfolio data. No analytics service is configured by default.</p><h2>Media and third parties</h2><p className="muted" style={{lineHeight:1.8}}>Published images, documents, audio, and video may be served from the owner&apos;s configured object-storage provider. Email delivery, hosting, database, and storage providers process information as required to provide those services.</p><p className="muted" style={{lineHeight:1.8}}>Do not submit passwords, financial details, identity documents, or other sensitive personal information through the contact form.</p></div></ContentPage>}
+
+export const metadata = { title: 'Privacy' };
+
+export default function PrivacyPage() {
+  return (
+    <ContentPage
+      index="P"
+      title="Privacy, plainly stated."
+      intro="This portfolio collects only the information needed to operate its contact and content features."
+    >
+      <div className="card">
+        <h2>Contact messages</h2>
+        <p className="muted" style={{ lineHeight: 1.8 }}>
+          When you submit the contact form, your name, email address, subject,
+          inquiry category, and message are stored in a private database for
+          the portfolio owner to review. If a transactional email provider is
+          configured, the system attempts to notify the owner. Database
+          storage and email delivery are separate; the form reports that a
+          message was saved, not that an email was necessarily delivered.
+        </p>
+
+        <h2>Retention</h2>
+        <p className="muted" style={{ lineHeight: 1.8 }}>
+          Messages are retained until the owner archives or deletes them under
+          the site&apos;s operational policy. A specific retention period
+          should be set by the owner before public launch.
+        </p>
+
+        <h2>Cookies and sessions</h2>
+        <p className="muted" style={{ lineHeight: 1.8 }}>
+          The private administrator area uses an HTTP-only session cookie.
+          The portfolio assistant sends the visitor&apos;s submitted question
+          to the site&apos;s own server and answers using published portfolio
+          data. No analytics service is configured by default.
+        </p>
+
+        <h2>Media and third parties</h2>
+        <p className="muted" style={{ lineHeight: 1.8 }}>
+          Published images, documents, audio, and video may be served from the
+          owner&apos;s configured object-storage provider. Email delivery,
+          hosting, database, and storage providers process information as
+          required to provide those services.
+        </p>
+
+        <p className="muted" style={{ lineHeight: 1.8 }}>
+          Do not submit passwords, financial details, identity documents, or
+          other sensitive personal information through the contact form.
+        </p>
+      </div>
+    </ContentPage>
+  );
+}

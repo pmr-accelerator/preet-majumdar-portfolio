@@ -159,7 +159,7 @@ export default async function AboutPage() {
 
               <Link
                 href="/contact"
-                className="!inline-flex !items-center !justify-center !rounded-full !bg-slate-950 !text-cyan-300 !border !border-cyan-400 px-6 py-3 text-sm font-semibold hover:!bg-slate-800 hover:!text-white transition-colors"
+                className="inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold bg-cyan-400/10 text-cyan-300 border border-cyan-400/40 hover:bg-cyan-400 hover:text-slate-950 hover:border-cyan-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 transition-all duration-300 ease-out"
               >
                 Contact Me →
               </Link>

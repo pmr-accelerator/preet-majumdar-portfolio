@@ -1,6 +1,5 @@
 import { ContentPage } from '@/components/content-page';
 import { prisma } from '@/lib/prisma';
-import styles from './experience.module.css';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,27 +26,27 @@ export default async function ExperiencePage() {
       intro="My experience so far is grounded in student leadership, programming education, and college cultural productions."
     >
       {entries.length === 0 ? (
-        <div className={`card ${styles.empty}`}>
+        <div className="card experience-empty">
           <h2>Experience details will be added here.</h2>
           <p className="muted">
             Leadership, mentoring and professional activities will appear here.
           </p>
         </div>
       ) : (
-        <div className={styles.experienceGrid}>
+        <div className="experience-grid">
           {entries.map(entry => (
             <article
-              className={`${styles.experienceCard}${entry.featured ? ` ${styles.featured}` : ''}`}
+              className={`experience-card${entry.featured ? ' experience-card-featured' : ''}`}
               key={entry.id}
             >
-              <div className={styles.cardTop}>
-                <p className={`${styles.organization} mono`}>
+              <div className="experience-card-top">
+                <p className="experience-organization mono">
                   {entry.organization}
                 </p>
 
                 {entry.current && (
-                  <span className={styles.status}>
-                    <span className={styles.statusDot} />
+                  <span className="experience-status">
+                    <span className="experience-status-dot" />
                     PRESENT
                   </span>
                 )}
@@ -56,7 +55,7 @@ export default async function ExperiencePage() {
               <h2>{entry.title}</h2>
 
               {(entry.startDate || entry.endDate || entry.current) && (
-                <p className={styles.date}>
+                <p className="experience-date">
                   {entry.startDate
                     ? entry.startDate.toLocaleDateString('en-GB', {
                         month: 'short',
@@ -75,13 +74,13 @@ export default async function ExperiencePage() {
               )}
 
               {entry.description && (
-                <p className={styles.description}>
+                <p className="experience-description">
                   {entry.description}
                 </p>
               )}
 
               {entry.responsibilities.length > 0 && (
-                <ul className={styles.responsibilities}>
+                <ul className="experience-responsibilities">
                   {entry.responsibilities.map((responsibility, index) => (
                     <li key={`${entry.id}-${index}`}>
                       {responsibility}
@@ -91,7 +90,7 @@ export default async function ExperiencePage() {
               )}
 
               {entry.teachingSubjects.length > 0 && (
-                <p className={`${styles.teaching} mono`}>
+                <p className="experience-teaching mono">
                   Teaching: {entry.teachingSubjects.join(' · ')}
                 </p>
               )}

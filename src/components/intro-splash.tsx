@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -9,11 +10,11 @@ export function IntroSplash() {
   useEffect(() => {
     const exitTimer = window.setTimeout(() => {
       setExiting(true);
-    }, 1900);
+    }, 3200);
 
     const removeTimer = window.setTimeout(() => {
       setVisible(false);
-    }, 2800);
+    }, 4050);
 
     return () => {
       window.clearTimeout(exitTimer);

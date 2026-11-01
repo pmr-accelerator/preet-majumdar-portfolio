@@ -1,3 +1,5 @@
+
+import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { ContentPage } from '@/components/content-page';
 
@@ -8,62 +10,48 @@ export const metadata = {
 };
 
 export default async function GalleryPage() {
-  const items = await prisma.galleryItem.findMany({
+  const events = await prisma.galleryEvent.findMany({
     where: {
       publicationStatus: 'PUBLISHED',
+    },
+    include: {
+      galleryItems: {
+        where: {
+          publicationStatus: 'PUBLISHED',
+        },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { createdAt: 'asc' },
+        ],
+      },
     },
     orderBy: [
       { date: 'desc' },
       { sortOrder: 'asc' },
+      { createdAt: 'desc' },
     ],
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      category: true,
-      date: true,
-      eventName: true,
-      imageMediaId: true,
-      altText: true,
-      externalUrl: true,
-    },
   });
 
-  // Fetch only the media metadata needed by the gallery.
   const mediaIds = [
-    ...new Set(items.map((item) => item.imageMediaId)),
+    ...new Set(
+      events.flatMap((event) => [
+        ...(event.coverMediaId ? [event.coverMediaId] : []),
+        ...event.galleryItems.map((item) => item.imageMediaId),
+      ]),
+    ),
   ];
 
   const assets = mediaIds.length
     ? await prisma.mediaAsset.findMany({
         where: {
-          id: {
-            in: mediaIds,
-          },
-        },
-        select: {
-          id: true,
-          contentType: true,
+          id: { in: mediaIds },
         },
       })
     : [];
 
   const assetMap = new Map(
-    assets.map((asset) => [asset.id, asset])
+    assets.map((asset) => [asset.id, asset]),
   );
-
-  // Group photographs by event name.
-  const eventGroups = new Map<string, typeof items>();
-
-  for (const item of items) {
-    const eventName = item.eventName?.trim() || 'Other Moments';
-
-    if (!eventGroups.has(eventName)) {
-      eventGroups.set(eventName, []);
-    }
-
-    eventGroups.get(eventName)!.push(item);
-  }
 
   return (
     <ContentPage
@@ -71,79 +59,99 @@ export default async function GalleryPage() {
       title="A record of real moments."
       intro="Photographs from academic events, technical activities, and cultural productions."
     >
-      {items.length === 0 ? (
+      {events.length === 0 ? (
         <div className="card">
-          <h2>No gallery items published yet.</h2>
+          <h2>No gallery events published yet.</h2>
           <p className="muted">
-            Only genuine photographs added by the owner will appear here.
+            Published event albums will appear here.
           </p>
         </div>
       ) : (
-        <div className="gallery-events">
-          {Array.from(eventGroups.entries()).map(
-            ([eventName, eventItems]) => (
-              <section
-                key={eventName}
-                className="gallery-event"
+        <div className="content-grid gallery-events-grid">
+          {events.map((event) => {
+            const publishedPhotos = event.galleryItems;
+
+            // Priority 1: Separately uploaded event cover.
+            const standaloneCoverAsset = event.coverMediaId
+              ? assetMap.get(event.coverMediaId)
+              : null;
+
+            const hasStandaloneCover =
+              standaloneCoverAsset?.contentType.startsWith('image/') ?? false;
+
+            // Priority 2: Selected photograph from the event album.
+            const selectedCover = publishedPhotos.find(
+              (item) => item.imageMediaId === event.coverMediaId,
+            );
+
+            // Priority 3: First published event photograph.
+            const firstPhoto = publishedPhotos[0];
+            const fallbackPhoto = selectedCover || firstPhoto;
+
+            const fallbackAsset = fallbackPhoto
+              ? assetMap.get(fallbackPhoto.imageMediaId)
+              : null;
+
+            const coverAsset = hasStandaloneCover
+              ? standaloneCoverAsset
+              : fallbackAsset;
+
+            const coverAlt = hasStandaloneCover
+              ? event.title
+              : fallbackPhoto?.altText || event.title;
+
+            const hasValidCover =
+              coverAsset?.contentType.startsWith('image/') ?? false;
+
+            return (
+              <article
+                className="card gallery-event-card"
+                key={event.id}
               >
-                <h2>{eventName}</h2>
+                {hasValidCover && coverAsset && (
+                  <Link
+                    className="media-visual gallery-event-cover"
+                    href={`/gallery/${event.slug}`}
+                    aria-label={`View ${event.title} gallery`}
+                  >
+                    <img
+                      src={`/api/media/${coverAsset.id}`}
+                      alt={coverAlt}
+                      loading="lazy"
+                    />
+                  </Link>
+                )}
 
-                <div className="content-grid">
-                  {eventItems.map((item) => {
-                    const asset = assetMap.get(item.imageMediaId);
+                <p className="eyebrow mono">
+                  {event.category}
+                  {event.date
+                    ? ` · ${event.date.toLocaleDateString('en-GB')}`
+                    : ''}
+                </p>
 
-                    return (
-                      <article className="card" key={item.id}>
-                        {asset?.contentType.startsWith('image/') && (
-                          <a
-                            className="media-visual gallery-media-visual"
-                            href={`/api/media/${asset.id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            aria-label={`Open photograph: ${item.title}`}
-                          >
-                            <img
-                              src={`/api/media/${asset.id}`}
-                              alt={item.altText || item.title}
-                              loading="lazy"
-                              decoding="async"
-                            />
-                          </a>
-                        )}
+                <h2>{event.title}</h2>
 
-                        <p className="eyebrow mono">
-                          {item.category}
-                          {item.date
-                            ? ` · ${item.date.toLocaleDateString('en-GB')}`
-                            : ''}
-                        </p>
+                {event.description && (
+                  <p className="muted">
+                    {event.description}
+                  </p>
+                )}
 
-                        <h3>{item.title}</h3>
+                <p className="muted">
+                  {publishedPhotos.length}{' '}
+                  {publishedPhotos.length === 1
+                    ? 'photograph'
+                    : 'photographs'}
+                </p>
 
-                        {item.description && (
-                          <p className="muted">
-                            {item.description}
-                          </p>
-                        )}
-
-                        {item.externalUrl && (
-                          <p>
-                            <a
-                              href={item.externalUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              View original source ↗
-                            </a>
-                          </p>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            )
-          )}
+                <p>
+                  <Link href={`/gallery/${event.slug}`}>
+                    View event photographs →
+                  </Link>
+                </p>
+              </article>
+            );
+          })}
         </div>
       )}
     </ContentPage>

@@ -201,10 +201,7 @@ const creativeSchema = z.object({
   language: z.string().max(80).optional(),
   genre: z.string().max(80).optional(),
   taal: z.string().max(80).optional(),
-
-  // FIX: Accept comma-separated accompanying instruments.
   accompanyingInstruments: z.string().max(300).optional(),
-
   externalMediaUrl: z.string().trim().url().optional().or(z.literal('')),
   mediaAssetId: z.string().optional(),
   coverMediaId: z.string().optional(),
@@ -225,7 +222,6 @@ export async function saveCreativeAction(fd: FormData) {
   const d = parsed.data;
   const id = str(fd, 'id');
 
-  // FIX: Always provide a string array, never null.
   const accompanyingInstruments = (d.accompanyingInstruments ?? '')
     .split(',')
     .map(instrument => instrument.trim())
@@ -239,10 +235,7 @@ export async function saveCreativeAction(fd: FormData) {
     language: d.language || null,
     genre: d.genre || null,
     taal: d.taal || null,
-
-    // FIX: Included in both Prisma create and update.
     accompanyingInstruments,
-
     externalMediaUrl: d.externalMediaUrl || null,
     mediaAssetId: d.mediaAssetId || null,
     coverMediaId: d.coverMediaId || null,
@@ -393,7 +386,6 @@ export async function deleteSkillAction(fd: FormData) {
   redirect('/admin/skills');
 }
 
-
 const gallerySchema = z.object({
   title: z.string().trim().min(2).max(160),
   eventName: z.string().trim().max(160).optional(),
@@ -485,7 +477,6 @@ export async function deleteGalleryAction(fd: FormData) {
   redirect('/admin/gallery');
 }
 
-
 export async function setCurrentResumeAction(fd: FormData) {
   await requireAdmin();
 
@@ -525,24 +516,32 @@ export async function unpublishResumeAction() {
   redirect('/admin/resume');
 }
 
+// EXPERIENCE SCHEMA
 const experienceSchema = z.object({
   title: z.string().trim().min(2).max(160),
   organization: z.string().trim().min(2).max(200),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   current: z.string().optional(),
+  featured: z.string().optional(),
   description: z.string().max(5000).optional(),
   responsibilities: z.string().max(3000).optional(),
   teachingSubjects: z.string().max(1000).optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED'])
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  sortOrder: z.coerce.number().int().min(0).max(9999).default(0)
 });
 
 export async function saveExperienceAction(fd: FormData) {
   await requireAdmin();
 
-  const parsed = experienceSchema.safeParse(Object.fromEntries(fd.entries()));
+  const parsed = experienceSchema.safeParse(
+    Object.fromEntries(fd.entries())
+  );
+
   if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? 'Invalid experience entry');
+    throw new Error(
+      parsed.error.issues[0]?.message ?? 'Invalid experience entry'
+    );
   }
 
   const d = parsed.data;
@@ -554,28 +553,46 @@ export async function saveExperienceAction(fd: FormData) {
     startDate: d.startDate ? new Date(d.startDate) : null,
     endDate: d.endDate ? new Date(d.endDate) : null,
     current: d.current === 'on',
+    featured: d.featured === 'on',
     description: d.description || null,
-    responsibilities: (d.responsibilities || '').split('\n').map(s => s.trim()).filter(Boolean),
-    teachingSubjects: (d.teachingSubjects || '').split(',').map(s => s.trim()).filter(Boolean),
-    status: d.status
+    responsibilities: (d.responsibilities || '')
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean),
+    teachingSubjects: (d.teachingSubjects || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean),
+    status: d.status,
+    sortOrder: d.sortOrder
   };
 
   if (id) {
-    await prisma.experience.update({ where: { id }, data });
+    await prisma.experience.update({
+      where: { id },
+      data
+    });
   } else {
-    await prisma.experience.create({ data });
+    await prisma.experience.create({
+      data
+    });
   }
 
   revalidatePath('/experience');
+  revalidatePath('/admin/experience');
   redirect('/admin/experience');
 }
 
 export async function deleteExperienceAction(fd: FormData) {
   await requireAdmin();
 
-  await prisma.experience.delete({ where: { id: str(fd, 'id') } });
+  const id = str(fd, 'id');
+  if (!id) throw new Error('Missing experience entry ID');
+
+  await prisma.experience.delete({ where: { id } });
 
   revalidatePath('/experience');
+  revalidatePath('/admin/experience');
   redirect('/admin/experience');
 }
 
@@ -674,4 +691,286 @@ export async function deleteDramaAction(fd: FormData) {
 
   revalidatePath('/creative/drama');
   redirect('/admin/drama');
+}
+
+
+const galleryEventSchema = z.object({
+  title: z.string().trim().min(2).max(160),
+  slug: z.string().trim().min(2).max(180)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  date: z.string().optional(),
+  description: z.string().max(5000).optional(),
+  category: z.string().trim().min(2).max(100),
+  coverMediaId: z.string().optional(),
+  publicationStatus: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  sortOrder: z.coerce.number().int().min(0).max(9999).default(0)
+});
+
+export async function saveGalleryEventAction(fd: FormData) {
+  await requireAdmin();
+
+  const parsed = galleryEventSchema.safeParse(
+    Object.fromEntries(fd.entries())
+  );
+
+  if (!parsed.success) {
+    throw new Error(
+      parsed.error.issues[0]?.message ?? 'Invalid gallery event'
+    );
+  }
+
+  const d = parsed.data;
+  const id = str(fd, 'id');
+  const coverMediaId = d.coverMediaId || null;
+
+  if (coverMediaId) {
+    const cover = await prisma.mediaAsset.findUnique({
+      where: { id: coverMediaId },
+      select: { id: true, contentType: true }
+    });
+
+    if (!cover || !cover.contentType.startsWith('image/')) {
+      throw new Error('Choose a valid cover photograph.');
+    }
+  }
+
+  const data = {
+    title: d.title,
+    slug: d.slug,
+    date: d.date ? new Date(d.date) : null,
+    description: d.description || null,
+    category: d.category,
+    coverMediaId,
+    publicationStatus: d.publicationStatus,
+    sortOrder: d.sortOrder,
+    publishedAt:
+      d.publicationStatus === 'PUBLISHED' ? new Date() : null
+  };
+
+  if (id) {
+    await prisma.galleryEvent.update({
+      where: { id },
+      data
+    });
+  } else {
+    await prisma.galleryEvent.create({
+      data
+    });
+  }
+
+  revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
+
+  redirect('/admin/gallery');
+}
+
+export async function deleteGalleryEventAction(fd: FormData) {
+  await requireAdmin();
+
+  const id = str(fd, 'id');
+
+  if (!id) {
+    throw new Error('Gallery event ID is missing.');
+  }
+
+  // The schema's ON DELETE SET NULL preserves its photographs.
+  await prisma.galleryEvent.delete({
+    where: { id }
+  });
+
+  revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
+
+  redirect('/admin/gallery');
+}
+
+
+export async function addGalleryPhotosAction(fd: FormData) {
+  await requireAdmin();
+
+  const eventId = str(fd, 'galleryEventId');
+
+  const imageMediaIds = [
+    ...new Set(
+      fd.getAll('imageMediaIds')
+        .map((value) => String(value).trim())
+        .filter(Boolean)
+    )
+  ];
+
+  if (!eventId) {
+    throw new Error('Select a gallery event.');
+  }
+
+  if (imageMediaIds.length === 0) {
+    throw new Error('Upload at least one photograph.');
+  }
+
+  if (imageMediaIds.length > 10) {
+    throw new Error('You can add up to 10 photographs at a time.');
+  }
+
+  const event = await prisma.galleryEvent.findUnique({
+    where: { id: eventId },
+    select: {
+      id: true,
+      title: true,
+      date: true,
+      category: true,
+      publicationStatus: true
+    }
+  });
+
+  if (!event) {
+    throw new Error('Gallery event not found.');
+  }
+
+  const assets = await prisma.mediaAsset.findMany({
+    where: {
+      id: { in: imageMediaIds },
+      contentType: { startsWith: 'image/' }
+    },
+    select: {
+      id: true,
+      originalName: true,
+      altText: true
+    }
+  });
+
+  if (assets.length !== imageMediaIds.length) {
+    throw new Error(
+      'One or more selected files are missing or are not images.'
+    );
+  }
+
+  const assetMap = new Map(
+    assets.map((asset) => [asset.id, asset])
+  );
+
+  const lastPhoto = await prisma.galleryItem.findFirst({
+    where: { galleryEventId: event.id },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true }
+  });
+
+  const startingOrder = (lastPhoto?.sortOrder ?? -1) + 1;
+
+  await prisma.galleryItem.createMany({
+    data: imageMediaIds.map((mediaId, index) => {
+      const asset = assetMap.get(mediaId)!;
+
+      return {
+        title:
+          asset.originalName.replace(/\.[^/.]+$/, '') || event.title,
+        imageMediaId: mediaId,
+        galleryEventId: event.id,
+        eventName: event.title,
+        date: event.date,
+        category: event.category,
+        altText: asset.altText || asset.originalName || event.title,
+        publicationStatus: event.publicationStatus,
+        sortOrder: startingOrder + index
+      };
+    })
+  });
+
+  revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
+
+  redirect('/admin/gallery');
+}
+
+export async function setGalleryEventCoverAction(fd: FormData) {
+  await requireAdmin();
+
+  const eventId = str(fd, 'galleryEventId');
+  const imageMediaId = str(fd, 'imageMediaId');
+
+  if (!eventId || !imageMediaId) {
+    throw new Error('Event and cover photograph are required.');
+  }
+
+  const [event, photo, asset] = await Promise.all([
+    prisma.galleryEvent.findUnique({
+      where: { id: eventId },
+      select: { id: true }
+    }),
+
+    prisma.galleryItem.findFirst({
+      where: {
+        galleryEventId: eventId,
+        imageMediaId
+      },
+      select: { id: true }
+    }),
+
+    prisma.mediaAsset.findUnique({
+      where: { id: imageMediaId },
+      select: { contentType: true }
+    })
+  ]);
+
+  if (
+    !event ||
+    !photo ||
+    !asset?.contentType.startsWith('image/')
+  ) {
+    throw new Error(
+      'The selected cover must be a photograph belonging to this event.'
+    );
+  }
+
+  await prisma.galleryEvent.update({
+    where: { id: eventId },
+    data: { coverMediaId: imageMediaId }
+  });
+
+  revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
+
+  redirect('/admin/gallery');
+}
+
+export async function deleteGalleryPhotoAction(fd: FormData) {
+  await requireAdmin();
+
+  const id = str(fd, 'id');
+
+  if (!id) {
+    throw new Error('Photograph ID is missing.');
+  }
+
+  const photo = await prisma.galleryItem.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      imageMediaId: true,
+      galleryEventId: true
+    }
+  });
+
+  if (!photo) {
+    throw new Error('Photograph not found.');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.galleryItem.delete({
+      where: { id }
+    });
+
+    if (photo.galleryEventId) {
+      await tx.galleryEvent.updateMany({
+        where: {
+          id: photo.galleryEventId,
+          coverMediaId: photo.imageMediaId
+        },
+        data: { coverMediaId: null }
+      });
+    }
+  });
+
+  revalidatePath('/gallery');
+  revalidatePath('/admin/gallery');
+
+  redirect('/admin/gallery');
 }
