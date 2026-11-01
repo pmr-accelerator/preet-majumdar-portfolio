@@ -1,10 +1,13 @@
-
 import { prisma } from '@/lib/prisma';
 import { ContentPage } from '@/components/content-page';
 import { MediaDisplay } from '@/components/media-display';
+import { DramaDescriptionModal } from '@/components/drama-description-modal';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Drama and cultural productions' };
+
+export const metadata = {
+  title: 'Drama and cultural productions',
+};
 
 export default async function DramaPage() {
   const items = await prisma.dramaProduction.findMany({
@@ -17,7 +20,7 @@ export default async function DramaPage() {
 
   const ids = [
     ...new Set(
-      items.map((i) => i.posterMediaId).filter(Boolean) as string[]
+      items.map((item) => item.posterMediaId).filter(Boolean) as string[]
     ),
   ];
 
@@ -32,7 +35,7 @@ export default async function DramaPage() {
     },
   });
 
-  const byId = new Map(assets.map((a) => [a.id, a]));
+  const assetsById = new Map(assets.map((asset) => [asset.id, asset]));
 
   return (
     <ContentPage
@@ -48,39 +51,62 @@ export default async function DramaPage() {
           </p>
         </div>
       ) : (
-        <div className="content-grid">
-          {items.map((i) => {
-            const poster = i.posterMediaId
-              ? byId.get(i.posterMediaId) ?? null
+        <div className="content-grid drama-grid">
+          {items.map((item) => {
+            const poster = item.posterMediaId
+              ? assetsById.get(item.posterMediaId) ?? null
               : null;
 
             return (
-              <article className="card" key={i.id}>
-                <p className="eyebrow mono">
-                  {i.organization}
-                  {i.productionDate
-                    ? ` · ${i.productionDate.toLocaleDateString('en-GB')}`
-                    : ''}
-                </p>
+              <article className="card drama-card" key={item.id}>
+                <div className="drama-meta">
+                  <p className="eyebrow mono">
+                    {item.organization}
+                    {item.productionDate
+                      ? ` · ${item.productionDate.toLocaleDateString('en-GB')}`
+                      : ''}
+                  </p>
+                </div>
 
-                <h2>{i.title}</h2>
+                <div className="drama-title-area">
+                  <h2 className="drama-title">{item.title}</h2>
+                </div>
 
-                <p className="muted">Role: {i.role}</p>
+                <div className="drama-role-area">
+                  <p className="muted drama-role">Role: {item.role}</p>
+                </div>
 
-                <p style={{ lineHeight: 1.8 }}>{i.description}</p>
+                <div className="drama-description-area">
+                  <p className="drama-description">
+                    {item.description}
+                  </p>
 
-                {i.videoUrl ? (
-                  <MediaDisplay
-                    externalUrl={i.videoUrl}
-                    cover={poster}
-                    title={i.title}
-                  />
-                ) : poster ? (
-                  <MediaDisplay
-                    asset={poster}
-                    title={i.title}
-                  />
-                ) : null}
+                  {item.description?.trim() && (
+                    <DramaDescriptionModal
+                      title={item.title}
+                      description={item.description}
+                    />
+                  )}
+                </div>
+
+                <div className="drama-media-frame">
+                  {item.videoUrl ? (
+                    <MediaDisplay
+                      externalUrl={item.videoUrl}
+                      cover={poster}
+                      title={item.title}
+                    />
+                  ) : poster ? (
+                    <MediaDisplay
+                      asset={poster}
+                      title={item.title}
+                    />
+                  ) : (
+                    <div className="drama-media-placeholder">
+                      Media coming soon
+                    </div>
+                  )}
+                </div>
               </article>
             );
           })}

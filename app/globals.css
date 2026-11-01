@@ -884,3 +884,237 @@ section.wrap .creative-grid {
     padding: 16px;
   }
 }
+
+/* =========================================
+   DRAMA CARDS — FIXED INTERNAL LAYOUT
+========================================= */
+
+.drama-grid {
+  align-items: stretch;
+}
+
+.drama-card {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: 42px 52px 28px 150px auto;
+  align-content: start;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.drama-meta {
+  height: 42px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.drama-meta p {
+  margin: 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.drama-title-area {
+  height: 52px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.drama-title {
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.drama-role-area {
+  height: 28px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.drama-role {
+  margin: 0;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.drama-description-area {
+  height: 150px;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.drama-description {
+  width: 100%;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.8;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.drama-read-more {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.drama-read-more:hover {
+  text-decoration: underline;
+}
+
+/* Fixed 16:9 media area */
+
+.drama-media-frame {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0b0d0f;
+}
+
+.drama-media-frame .media-visual {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+.drama-media-frame .media-visual img,
+.drama-media-frame .media-visual video,
+.drama-media-frame .media-visual iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: contain;
+  border: 0;
+}
+
+.drama-media-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   FULL DESCRIPTION MODAL
+========================================= */
+
+.drama-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.drama-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 680px);
+  max-height: 80vh;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.4);
+}
+
+.drama-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drama-modal-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.4;
+}
+
+.drama-modal-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.drama-modal-content {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.drama-modal-content p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.drama-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 24px;
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 600px) {
+  .drama-card {
+    grid-template-rows: 42px 52px 28px 150px auto;
+    padding: 20px;
+  }
+
+  .drama-modal-backdrop {
+    padding: 12px;
+  }
+
+  .drama-modal-header,
+  .drama-modal-content {
+    padding: 18px;
+  }
+}
