@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 enum PublicationStatus {
@@ -327,4 +328,47 @@ model SiteSettings {
   assistantEnabled    Boolean  @default(true)
   assistantDisclosure String   @default("Automated portfolio assistant; not a live conversation with Preet.")
   updatedAt           DateTime @updatedAt
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewVerificationStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+model Review {
+  id                    String                   @id @default(cuid())
+  name                  String
+  designation           String?
+  rating                Int
+  content               String                   @db.Text
+  linkedInUrl           String?
+  email                 String
+  emailVerifiedAt       DateTime?
+  verificationStatus    ReviewVerificationStatus @default(UNVERIFIED)
+  verificationTokenHash String?                  @unique
+  verificationExpiresAt DateTime?
+  status                ReviewStatus             @default(PENDING)
+  moderatedAt           DateTime?
+  moderatedById         String?
+  moderationNote        String?                  @db.Text
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email, createdAt])
+  @@index([verificationStatus, verificationExpiresAt])
+}
+
+model ReviewSubmissionAttempt {
+  id        String   @id @default(cuid())
+  ipHash    String
+  createdAt DateTime @default(now())
+
+  @@index([ipHash, createdAt])
 }

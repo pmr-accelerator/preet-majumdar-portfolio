@@ -84,6 +84,12 @@ export async function SiteFooter() {
 
           <Link href="/gallery">Gallery</Link>
           <Link href="/privacy">Privacy</Link>
+          <Link
+  href="/reviews#submit-review"
+  className="button button-primary"
+>
+  Write a Review
+</Link>
         </div>
       </div>
     </footer>

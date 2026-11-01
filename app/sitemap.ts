@@ -15,6 +15,7 @@ const routes = [
   '/creative/tabla',
   '/creative/drama',
   '/contact',
+  '/reviews',
   '/privacy',
 ];
 

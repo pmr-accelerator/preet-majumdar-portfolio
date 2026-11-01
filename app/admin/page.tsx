@@ -188,6 +188,12 @@ export default async function AdminDashboardPage() {
           <Link className="button" href="/admin/messages">
             Contact inbox
           </Link>
+<Link
+  className="button button-primary"
+  href="/admin/reviews"
+>
+  Manage Reviews
+</Link>
           <Link className="button" href="/admin/media">
             Media library
           </Link>

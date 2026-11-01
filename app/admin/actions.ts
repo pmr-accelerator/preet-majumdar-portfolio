@@ -974,3 +974,110 @@ export async function deleteGalleryPhotoAction(fd: FormData) {
 
   redirect('/admin/gallery');
 }
+
+
+// ================================
+// REVIEW MODERATION ACTIONS
+// ================================
+
+export async function moderateReviewAction(fd: FormData) {
+  await requireAdmin();
+
+  const id = str(fd, 'id');
+  const status = str(fd, 'status');
+
+  if (!id || !['APPROVED', 'REJECTED'].includes(status)) {
+    throw new Error('Invalid review moderation request.');
+  }
+
+  const review = await prisma.review.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      verificationStatus: true,
+    },
+  });
+
+  if (!review) {
+    throw new Error('Review not found.');
+  }
+
+  if (review.verificationStatus !== 'VERIFIED') {
+    throw new Error('Only email-verified reviews can be moderated.');
+  }
+
+  await prisma.review.update({
+    where: { id },
+    data: {
+      status: status as 'APPROVED' | 'REJECTED',
+      moderatedAt: new Date(),
+    },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/reviews');
+  revalidatePath('/admin');
+  revalidatePath('/admin/reviews');
+
+  redirect('/admin/reviews');
+}
+
+export async function editReviewAction(fd: FormData) {
+  await requireAdmin();
+
+  const id = str(fd, 'id');
+
+  const parsed = z.object({
+    name: z.string().trim().min(2).max(100),
+    designation: z.string().trim().max(150).optional(),
+    rating: z.coerce.number().int().min(1).max(5),
+    content: z.string().trim().min(10).max(2000),
+    linkedInUrl: z.string().trim().url().optional().or(z.literal('')),
+  }).safeParse(Object.fromEntries(fd.entries()));
+
+  if (!id || !parsed.success) {
+    throw new Error(
+      parsed.success
+        ? 'Review ID is missing.'
+        : parsed.error.issues[0]?.message ?? 'Invalid review data.'
+    );
+  }
+
+  await prisma.review.update({
+    where: { id },
+    data: {
+      name: parsed.data.name,
+      designation: parsed.data.designation || null,
+      rating: parsed.data.rating,
+      content: parsed.data.content,
+      linkedInUrl: parsed.data.linkedInUrl || null,
+    },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/reviews');
+  revalidatePath('/admin/reviews');
+
+  redirect('/admin/reviews');
+}
+
+export async function deleteReviewAction(fd: FormData) {
+  await requireAdmin();
+
+  const id = str(fd, 'id');
+
+  if (!id) {
+    throw new Error('Review ID is missing.');
+  }
+
+  await prisma.review.delete({
+    where: { id },
+  });
+
+  revalidatePath('/');
+  revalidatePath('/reviews');
+  revalidatePath('/admin');
+  revalidatePath('/admin/reviews');
+
+  redirect('/admin/reviews');
+}
